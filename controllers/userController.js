@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
 const db = require('../config/db');
 
-// Получение данных пользователя
+//получение 
 exports.getUser = (req, res) => {
     const token = req.headers.authorization;
 
@@ -35,7 +35,7 @@ exports.getUser = (req, res) => {
     }
 };
 
-// Обновление данных пользователя
+//обновление 
 exports.updateUser = (req, res) => {
     const token = req.headers.authorization;
 
@@ -71,7 +71,7 @@ exports.updateUser = (req, res) => {
     }
 };
 
-// Удаление собственного аккаунта
+//удаление 
 exports.deleteOwnAccount = (req, res) => {
     const token = req.headers.authorization;
 
@@ -101,7 +101,7 @@ exports.deleteOwnAccount = (req, res) => {
     }
 };
 
-// Получение всех пользователей (админка)
+//получение пользователей админ
 exports.getAllUsers = (req, res) => {
     const token = req.headers.authorization;
 
@@ -155,7 +155,7 @@ exports.getAllUsers = (req, res) => {
     }
 };
 
-// Удаление пользователя администратором
+//удаление админ
 exports.deleteUserByAdmin = (req, res) => {
     const token = req.headers.authorization;
 

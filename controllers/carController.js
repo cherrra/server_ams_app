@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
 const db = require('../config/db');
 
-// Добавление машины
+//добавление
 exports.addCar = (req, res) => {
     const { model, brand, year, mileage, vin_code, license_plate, body_type, engine_type } = req.body;
     const token = req.headers.authorization;
@@ -32,7 +32,7 @@ exports.addCar = (req, res) => {
     }
 };
 
-// Обновление машины
+//обновление
 exports.updateCar = (req, res) => {
     const { model, brand, year, mileage, vin_code, license_plate, body_type, engine_type } = req.body;
     const token = req.headers.authorization;
@@ -68,7 +68,7 @@ exports.updateCar = (req, res) => {
     }
 };
 
-// Удаление машины
+//удаление 
 exports.deleteCar = (req, res) => {
     const token = req.headers.authorization;
 
@@ -103,7 +103,7 @@ exports.deleteCar = (req, res) => {
     }
 };
 
-// Получение списка машин
+//получение 
 exports.getCars = (req, res) => {
     const token = req.headers.authorization;
 

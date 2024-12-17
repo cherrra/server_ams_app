@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const db = require('../config/db');
 
+//получение
 exports.getCategories = (req, res) => {
   const token = req.headers.authorization;
 
@@ -26,6 +27,7 @@ exports.getCategories = (req, res) => {
   }
 };
 
+//получение админ
 exports.getCategoriesAdmin = (req, res) => {
   const token = req.headers.authorization;
 
@@ -58,6 +60,7 @@ exports.getCategoriesAdmin = (req, res) => {
   }
 };
 
+//добавление
 exports.addCategory = (req, res) => {
   const token = req.headers.authorization;
 
@@ -95,6 +98,7 @@ exports.addCategory = (req, res) => {
   }
 };
 
+//обновление
 exports.updateCategory = (req, res) => {
   const token = req.headers.authorization;
 
@@ -137,6 +141,7 @@ exports.updateCategory = (req, res) => {
   }
 };
 
+//удаление
 exports.deleteCategory = (req, res) => {
   const token = req.headers.authorization;
 

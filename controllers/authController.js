@@ -2,7 +2,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const db = require('../config/db');
 
-// Регистрация пользователя
+//регистрация
 exports.register = (req, res) => {
   const { username, email, password } = req.body;
 
@@ -40,7 +40,7 @@ exports.register = (req, res) => {
   });
 };
 
-// Авторизация пользователя
+//авторизация 
 exports.login = (req, res) => {
   const { email, password } = req.body;
 

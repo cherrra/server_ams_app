@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
-const db = require('../config/db'); // предположительно путь к файлу с подключением к БД
+const db = require('../config/db'); 
 
+//получение
 exports.getServices = (req, res) => {
     const token = req.headers.authorization;
     const categoryId = req.query.id_category;
@@ -31,6 +32,7 @@ exports.getServices = (req, res) => {
     }
 };
 
+//добавление
 exports.addService = (req, res) => {
     const token = req.headers.authorization;
 
@@ -68,6 +70,7 @@ exports.addService = (req, res) => {
     }
 };
 
+//обновление
 exports.updateService = (req, res) => {
     const token = req.headers.authorization;
 
@@ -110,6 +113,7 @@ exports.updateService = (req, res) => {
     }
 };
 
+//удаление
 exports.deleteService = (req, res) => {
     const token = req.headers.authorization;
 

@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
-const db = require('../config/db'); // подключение к базе данных
+const db = require('../config/db'); 
 
-// Получение заказов пользователя
+//получение 
 exports.getUserOrders = (req, res) => {
     const token = req.headers.authorization;
 
@@ -46,7 +46,7 @@ exports.getUserOrders = (req, res) => {
     }
 };
 
-// Получение заказов администратора
+//получение админ
 exports.getAdminOrders = (req, res) => {
     const token = req.headers.authorization;
 
@@ -102,7 +102,7 @@ exports.getAdminOrders = (req, res) => {
     }
 };
 
-// Обновление статуса заказа
+//обновление статуса 
 exports.updateOrderStatus = (req, res) => {
     const token = req.headers.authorization;
     const { status } = req.body; 
@@ -153,7 +153,7 @@ exports.updateOrderStatus = (req, res) => {
     }
 };
 
-// Создание нового заказа
+//создание 
 exports.createOrder = (req, res) => {
     console.log('Полученные данные:', req.body);
 
@@ -179,13 +179,13 @@ exports.createOrder = (req, res) => {
               console.error('Ошибка парсинга услуги:', serviceStr);
               return null;
           }
-      }).filter(service => service !== null); // Удаляем невалидные данные
+      }).filter(service => service !== null); 
 
       if (parsedServices.length === 0) {
           return res.status(400).json({ message: 'Некорректные данные услуг' });
       }
 
-      // Вставляем заказ в таблицу orders
+      //таблица orders
       db.query(
           `INSERT INTO orders (id, id_car, order_date, order_time, comment, total_price, status) 
            VALUES (?, ?, ?, ?, ?, ?, ?)`,
@@ -199,9 +199,9 @@ exports.createOrder = (req, res) => {
               const orderId = result.insertId;
 
               const serviceValues = parsedServices.map(service => [
-                  orderId, // id_order
-                  service.id_service, // id_service
-                  service.price // price
+                  orderId, 
+                  service.id_service, 
+                  service.price 
               ]);
 
           
@@ -225,7 +225,7 @@ exports.createOrder = (req, res) => {
 };
 
 
-// Удаление заказа
+//удаление 
 exports.deleteOrder = (req, res) => {
     const token = req.headers.authorization;
 
