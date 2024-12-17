@@ -155,7 +155,7 @@ exports.updateOrderStatus = (req, res) => {
 
 //создание 
 exports.createOrder = (req, res) => {
-    console.log('Полученные данные:', req.body);
+  console.log('Полученные данные:', req.body);
 
   const token = req.headers.authorization;
   if (!token) {
@@ -179,13 +179,13 @@ exports.createOrder = (req, res) => {
               console.error('Ошибка парсинга услуги:', serviceStr);
               return null;
           }
-      }).filter(service => service !== null); 
+      }).filter(service => service !== null); // Удаляем невалидные данные
 
       if (parsedServices.length === 0) {
           return res.status(400).json({ message: 'Некорректные данные услуг' });
       }
 
-      //таблица orders
+      // Вставляем заказ в таблицу orders
       db.query(
           `INSERT INTO orders (id, id_car, order_date, order_time, comment, total_price, status) 
            VALUES (?, ?, ?, ?, ?, ?, ?)`,
@@ -199,9 +199,9 @@ exports.createOrder = (req, res) => {
               const orderId = result.insertId;
 
               const serviceValues = parsedServices.map(service => [
-                  orderId, 
-                  service.id_service, 
-                  service.price 
+                  orderId, // id_order
+                  service.id_service, // id_service
+                  service.price // price
               ]);
 
           
@@ -227,35 +227,35 @@ exports.createOrder = (req, res) => {
 
 //удаление 
 exports.deleteOrder = (req, res) => {
-    const token = req.headers.authorization;
+  const token = req.headers.authorization;
 
-    if (!token) {
-        return res.status(401).json({ message: 'Токен не предоставлен' });
-    }
-  
-    try {
-        const decoded = jwt.verify(token, 'your_jwt_secret');
-        const userId = decoded.id;
-        const orderId = req.params.id;
-  
-        db.query(
-            `DELETE FROM orders WHERE id_order = ? AND id = ?`,
-            [orderId, userId],
-            (err, result) => {
-                if (err) {
-                    console.error('Ошибка при удалении заказа:', err);
-                    return res.status(500).json({ message: 'Ошибка при удалении заказа' });
-                }
-  
-                if (result.affectedRows > 0) {
-                    res.status(200).json({ message: 'Заказ успешно удалён' });
-                } else {
-                    res.status(404).json({ message: 'Заказ не найден' });
-                }
-            }
-        );
-    } catch (err) {
-        console.error('Ошибка проверки токена:', err);
-        res.status(403).json({ message: 'Неверный токен' });
-    }
+  if (!token) {
+      return res.status(401).json({ message: 'Токен не предоставлен' });
+  }
+
+  try {
+      const decoded = jwt.verify(token, 'your_jwt_secret');
+      const userId = decoded.id;
+      const orderId = req.params.id;
+
+      db.query(
+          `DELETE FROM orders WHERE id_order = ? AND id = ?`,
+          [orderId, userId],
+          (err, result) => {
+              if (err) {
+                  console.error('Ошибка при удалении заказа:', err);
+                  return res.status(500).json({ message: 'Ошибка при удалении заказа' });
+              }
+
+              if (result.affectedRows > 0) {
+                  res.status(200).json({ message: 'Заказ успешно удалён' });
+              } else {
+                  res.status(404).json({ message: 'Заказ не найден' });
+              }
+          }
+      );
+  } catch (err) {
+      console.error('Ошибка проверки токена:', err);
+      res.status(403).json({ message: 'Неверный токен' });
+  }
 };

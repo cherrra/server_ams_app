@@ -75,84 +75,89 @@ exports.updateUser = (req, res) => {
 exports.deleteOwnAccount = (req, res) => {
     const token = req.headers.authorization;
 
-    if (!token) {
-        return res.status(401).json({ message: 'Токен не предоставлен' });
-    }
+  if (!token) {
+      return res.status(401).json({ message: 'Токен не предоставлен' });
+  }
 
-    try {
-        const decoded = jwt.verify(token, 'your_jwt_secret');
-        const userId = decoded.id;
+  try {
+      const decoded = jwt.verify(token, 'your_jwt_secret');
+      const userId = decoded.id;
 
-        db.query('DELETE FROM users WHERE id = ?', [userId], (err, result) => {
-            if (err) {
-                console.error(err);
-                return res.status(500).json({ message: 'Ошибка при удалении аккаунта' });
-            }
+      db.query('DELETE FROM users WHERE id = ?', [userId], (err, result) => {
+          if (err) {
+              console.error(err);
+              return res.status(500).json({ message: 'Ошибка при удалении аккаунта' });
+          }
 
-            if (result.affectedRows === 0) {
-                return res.status(404).json({ message: 'Пользователь не найден' });
-            }
+          if (result.affectedRows === 0) {
+              return res.status(404).json({ message: 'Пользователь не найден' });
+          }
 
-            res.status(200).json({ message: 'Аккаунт успешно удалён' });
-        });
-    } catch (err) {
-        console.error(err);
-        res.status(403).json({ message: 'Неверный токен' });
-    }
+          res.status(200).json({ message: 'Аккаунт успешно удалён' });
+      });
+  } catch (err) {
+      console.error(err);
+      res.status(403).json({ message: 'Неверный токен' });
+  }
 };
 
 //получение пользователей админ
 exports.getAllUsers = (req, res) => {
     const token = req.headers.authorization;
 
-    if (!token) {
-        return res.status(401).json({ message: 'Токен не предоставлен' });
-    }
+  if (!token) {
+    return res.status(401).json({ message: 'Токен не предоставлен' });
+  }
 
-    try {
-        const decoded = jwt.verify(token, 'your_jwt_secret');
-        const userId = decoded.id;
+  try {
+    const decoded = jwt.verify(token, 'your_jwt_secret');
+    const userId = decoded.id;
 
-        db.query(
-            'SELECT is_admin FROM users WHERE id = ?',
-            [userId],
-            (err, result) => {
-                if (err || !result.length || !result[0].is_admin) {
-                    return res.status(403).json({ message: 'Нет прав для просмотра пользователей' });
-                }
+    db.query(
+      'SELECT is_admin FROM users WHERE id = ?',
+      [userId],
+      (err, result) => {
+        if (err) {
+          console.error(err);
+          return res.status(500).json({ message: 'Ошибка сервера' });
+        }
 
-                const query = `
-                    SELECT 
-                        u.id, 
-                        u.username, 
-                        u.email, 
-                        GROUP_CONCAT(c.model ORDER BY c.model SEPARATOR ', ') AS cars 
-                    FROM 
-                        users u
-                    LEFT JOIN 
-                        cars c 
-                    ON 
-                        u.id = c.id
-                    WHERE 
-                        u.email NOT LIKE '%@admin-mail%' 
-                    GROUP BY 
-                        u.id
-                `;
+        if (result.length === 0 || !result[0].is_admin) {
+          return res.status(403).json({ message: 'Нет прав для просмотра пользователей' });
+        }
 
-                db.query(query, (err, users) => {
-                    if (err) {
-                        console.error(err);
-                        return res.status(500).json({ message: 'Ошибка при получении данных' });
-                    }
+        const query = `
+          SELECT 
+            u.id, 
+            u.username, 
+            u.email, 
+            GROUP_CONCAT(c.model ORDER BY c.model SEPARATOR ', ') AS cars 
+          FROM 
+            users u
+          LEFT JOIN 
+            cars c 
+          ON 
+            u.id = c.id
+          WHERE 
+            u.email NOT LIKE '%@admin-mail%' 
+          GROUP BY 
+            u.id
+        `;
 
-                    res.status(200).json(users);
-                });
-            }
-        );
-    } catch (err) {
-        console.error(err);
-        res.status(403).json({ message: 'Неверный токен' });
-    }
+        db.query(query, (err, users) => {
+          if (err) {
+            console.error(err);
+            return res.status(500).json({ message: 'Ошибка при получении данных' });
+          }
+
+          res.status(200).json(users);
+        });
+      }
+    );
+  } catch (err) {
+    console.error(err);
+    res.status(403).json({ message: 'Неверный токен' });
+  }
 };
 
 //удаление админ
