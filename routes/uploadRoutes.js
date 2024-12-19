@@ -6,13 +6,20 @@ const uploadController = require('../controllers/uploadController');
 const storage = multer.diskStorage({
   destination: 'uploads/',
   filename: (req, file, cb) => {
-    const timestamp = Date.now();
-    const sanitizedFileName = file.originalname.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_.-]/g, '');
-    cb(null, `${timestamp}_${sanitizedFileName}`);
+    cb(null, file.originalname);
   },
 });
 
-const upload = multer({ storage });
+const fileFilter = (req, file, cb) => {
+  const allowedMimeTypes = ['image/jpeg', 'image/png'];
+  if (allowedMimeTypes.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new Error('Неверный формат файла. Поддерживаются только JPG и PNG.'));
+  }
+};
+
+const upload = multer({ storage, fileFilter });
 
 router.post('/upload', upload.single('image'), uploadController.uploadImage);
 
