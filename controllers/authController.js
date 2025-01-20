@@ -55,7 +55,9 @@ exports.login = (req, res) => {
       if (!isMatch) {
         return res.status(400).json({ message: 'Данные не верные' });
       }
-
+      
+      // Надо исправить!!!
+      
       const token = jwt.sign({ id: user.id, username: user.username, email: user.email }, 'your_jwt_secret', { expiresIn: '1h' });
 
       res.status(200).json({ token, username: user.username, email: user.email });
