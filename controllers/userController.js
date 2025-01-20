@@ -72,34 +72,34 @@ exports.updateUser = (req, res) => {
 };
 
 //удаление 
-exports.deleteOwnAccount = (req, res) => {
-    const token = req.headers.authorization;
+// exports.deleteOwnAccount = (req, res) => {
+//     const token = req.headers.authorization;
 
-  if (!token) {
-      return res.status(401).json({ message: 'Токен не предоставлен' });
-  }
+//   if (!token) {
+//       return res.status(401).json({ message: 'Токен не предоставлен' });
+//   }
 
-  try {
-      const decoded = jwt.verify(token, 'your_jwt_secret');
-      const userId = decoded.id;
+//   try {
+//       const decoded = jwt.verify(token, 'your_jwt_secret');
+//       const userId = decoded.id;
 
-      db.query('DELETE FROM users WHERE id = ?', [userId], (err, result) => {
-          if (err) {
-              console.error(err);
-              return res.status(500).json({ message: 'Ошибка при удалении аккаунта' });
-          }
+//       db.query('DELETE FROM users WHERE id = ?', [userId], (err, result) => {
+//           if (err) {
+//               console.error(err);
+//               return res.status(500).json({ message: 'Ошибка при удалении аккаунта' });
+//           }
 
-          if (result.affectedRows === 0) {
-              return res.status(404).json({ message: 'Пользователь не найден' });
-          }
+//           if (result.affectedRows === 0) {
+//               return res.status(404).json({ message: 'Пользователь не найден' });
+//           }
 
-          res.status(200).json({ message: 'Аккаунт успешно удалён' });
-      });
-  } catch (err) {
-      console.error(err);
-      res.status(403).json({ message: 'Неверный токен' });
-  }
-};
+//           res.status(200).json({ message: 'Аккаунт успешно удалён' });
+//       });
+//   } catch (err) {
+//       console.error(err);
+//       res.status(403).json({ message: 'Неверный токен' });
+//   }
+// };
 
 //получение пользователей админ
 exports.getAllUsers = (req, res) => {
