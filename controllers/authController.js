@@ -56,7 +56,7 @@ exports.login = (req, res) => {
         return res.status(400).json({ message: 'Данные не верные' });
       }
       
-      // Надо исправить!!!
+      // Надо токены исправить!!!
       
       const token = jwt.sign({ id: user.id, username: user.username, email: user.email }, 'your_jwt_secret', { expiresIn: '1h' });
 
@@ -78,7 +78,7 @@ exports.getUser = (req, res) => {
       const userId = decoded.id;
 
       db.query(
-          'SELECT id, username, email, DATE_FORMAT(birth_date, "%d.%m.%Y") AS birth_date, gender, phone_number, link_img FROM users WHERE id = ?',
+          'SELECT id, username, email, DATE_FORMAT(birth_date, "%d.%m.%Y") AS birth_date, phone_number, link_img FROM users WHERE id = ?',
           [userId],
           (err, result) => {
               if (err) {
@@ -111,11 +111,11 @@ exports.updateUser = (req, res) => {
       const decoded = jwt.verify(token, 'your_jwt_secret');
       const userId = decoded.id;
 
-      const { username, email, birth_date, gender, phone_number } = req.body;
+      const { username, email, birth_date, phone_number } = req.body;
 
       db.query(
-          'UPDATE users SET username = ?, email = ?, birth_date = ?, gender = ?, phone_number = ? WHERE id = ?',
-          [username, email, birth_date, gender, phone_number, userId],
+          'UPDATE users SET username = ?, email = ?, birth_date = ?, phone_number = ? WHERE id = ?',
+          [username, email, birth_date, phone_number, userId],
           (err, result) => {
               if (err) {
                   console.error(err);

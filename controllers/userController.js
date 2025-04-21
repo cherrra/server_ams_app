@@ -14,7 +14,7 @@ exports.getUser = (req, res) => {
         const userId = decoded.id;
 
         db.query(
-            'SELECT id, username, email, DATE_FORMAT(birth_date, "%d.%m.%Y") AS birth_date, gender, phone_number, link_img FROM users WHERE id = ?',
+            'SELECT id, username, email, DATE_FORMAT(birth_date, "%d.%m.%Y") AS birth_date, phone_number, link_img FROM users WHERE id = ?',
             [userId],
             (err, result) => {
                 if (err) {
@@ -36,40 +36,40 @@ exports.getUser = (req, res) => {
 };
 
 //обновление 
-exports.updateUser = (req, res) => {
-    const token = req.headers.authorization;
+// exports.updateUser = (req, res) => {
+//     const token = req.headers.authorization;
 
-    if (!token) {
-        return res.status(401).json({ message: 'Токен не предоставлен' });
-    }
+//     if (!token) {
+//         return res.status(401).json({ message: 'Токен не предоставлен' });
+//     }
 
-    try {
-        const decoded = jwt.verify(token, 'your_jwt_secret');
-        const userId = decoded.id;
+//     try {
+//         const decoded = jwt.verify(token, 'your_jwt_secret');
+//         const userId = decoded.id;
 
-        const { username, email, birth_date, gender, phone_number } = req.body;
+//         const { username, email, birth_date, phone_number } = req.body;
 
-        db.query(
-            'UPDATE users SET username = ?, email = ?, birth_date = ?, gender = ?, phone_number = ? WHERE id = ?',
-            [username, email, birth_date, gender, phone_number, userId],
-            (err, result) => {
-                if (err) {
-                    console.error(err);
-                    return res.status(500).json({ message: 'Ошибка сервера' });
-                }
+//         db.query(
+//             'UPDATE users SET username = ?, email = ?, birth_date = ?, phone_number = ? WHERE id = ?',
+//             [username, email, birth_date, phone_number, userId],
+//             (err, result) => {
+//                 if (err) {
+//                     console.error(err);
+//                     return res.status(500).json({ message: 'Ошибка сервера' });
+//                 }
 
-                if (result.affectedRows === 0) {
-                    return res.status(404).json({ message: 'Пользователь не найден' });
-                }
+//                 if (result.affectedRows === 0) {
+//                     return res.status(404).json({ message: 'Пользователь не найден' });
+//                 }
 
-                res.status(200).json({ message: 'Данные успешно обновлены' });
-            }
-        );
-    } catch (err) {
-        console.error(err);
-        res.status(403).json({ message: 'Неверный токен' });
-    }
-};
+//                 res.status(200).json({ message: 'Данные успешно обновлены' });
+//             }
+//         );
+//     } catch (err) {
+//         console.error(err);
+//         res.status(403).json({ message: 'Неверный токен' });
+//     }
+// };
 
 //получение пользователей админ
 exports.getAllUsers = (req, res) => {
@@ -101,6 +101,7 @@ exports.getAllUsers = (req, res) => {
             u.id, 
             u.username, 
             u.email, 
+            u.link_img,
             GROUP_CONCAT(c.model ORDER BY c.model SEPARATOR ', ') AS cars 
           FROM 
             users u
