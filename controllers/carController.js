@@ -2,8 +2,37 @@ const jwt = require('jsonwebtoken');
 const db = require('../config/db');
 
 //добавление
+// exports.addCar = (req, res) => {
+//     const { model, brand, year, mileage, vin_code, license_plate } = req.body;
+//     const token = req.headers.authorization;
+
+//     if (!token) {
+//         return res.status(401).json({ message: 'Токен не предоставлен' });
+//     }
+
+//     try {
+//         const decoded = jwt.verify(token, 'your_jwt_secret');
+//         const userId = decoded.id;
+
+//         db.query(
+//             'INSERT INTO cars (model, brand, year, mileage, vin_code, license_plate, id) VALUES (?, ?, ?, ?, ?, ?, ?)',
+//             [model, brand, year, mileage, vin_code, license_plate, userId],
+//             (err) => {
+//                 if (err) {
+//                     console.error(err);
+//                     return res.status(500).json({ message: 'Ошибка при добавлении машины' });
+//                 }
+
+//                 res.status(200).json({ message: 'Машина успешно добавлена' });
+//             }
+//         );
+//     } catch (err) {
+//         console.error(err);
+//         res.status(403).json({ message: 'Неверный токен' });
+//     }
+// };
 exports.addCar = (req, res) => {
-    const { model, brand, year, mileage, vin_code, license_plate, body_type, engine_type } = req.body;
+    const { id_model, year, mileage, vin_code, license_plate } = req.body;
     const token = req.headers.authorization;
 
     if (!token) {
@@ -15,8 +44,8 @@ exports.addCar = (req, res) => {
         const userId = decoded.id;
 
         db.query(
-            'INSERT INTO cars (model, brand, year, mileage, vin_code, license_plate, body_type, engine_type, id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-            [model, brand, year, mileage, vin_code, license_plate, body_type, engine_type, userId],
+            'INSERT INTO cars (id_model, year, mileage, vin_code, license_plate, id) VALUES (?, ?, ?, ?, ?, ?)',
+            [id_model, year, mileage, vin_code, license_plate, userId],
             (err) => {
                 if (err) {
                     console.error(err);
@@ -32,9 +61,44 @@ exports.addCar = (req, res) => {
     }
 };
 
+
 //обновление
+// exports.updateCar = (req, res) => {
+//     const { model, brand, year, mileage, vin_code, license_plate } = req.body;
+//     const token = req.headers.authorization;
+
+//     if (!token) {
+//         return res.status(401).json({ message: 'Токен не предоставлен' });
+//     }
+
+//     try {
+//         const decoded = jwt.verify(token, 'your_jwt_secret');
+//         const userId = decoded.id;
+//         const carId = req.params.id;
+
+//         db.query(
+//             'UPDATE cars SET model = ?, brand = ?, year = ?, mileage = ?, vin_code = ?, license_plate = ? WHERE id_car = ? AND id = ?',
+//             [model, brand, year, mileage, vin_code, license_plate, carId, userId],
+//             (err, result) => {
+//                 if (err) {
+//                     console.error(err);
+//                     return res.status(500).json({ message: 'Ошибка при обновлении машины' });
+//                 }
+
+//                 if (result.affectedRows === 0) {
+//                     return res.status(404).json({ message: 'Машина не найдена' });
+//                 }
+
+//                 res.status(200).json({ message: 'Машина успешно обновлена' });
+//             }
+//         );
+//     } catch (err) {
+//         console.error(err);
+//         res.status(403).json({ message: 'Неверный токен' });
+//     }
+// };
 exports.updateCar = (req, res) => {
-    const { model, brand, year, mileage, vin_code, license_plate, body_type, engine_type } = req.body;
+    const { id_model, year, mileage, vin_code, license_plate } = req.body;
     const token = req.headers.authorization;
 
     if (!token) {
@@ -47,8 +111,8 @@ exports.updateCar = (req, res) => {
         const carId = req.params.id;
 
         db.query(
-            'UPDATE cars SET model = ?, brand = ?, year = ?, mileage = ?, vin_code = ?, license_plate = ?, body_type = ?, engine_type = ? WHERE id_car = ? AND id = ?',
-            [model, brand, year, mileage, vin_code, license_plate, body_type, engine_type, carId, userId],
+            'UPDATE cars SET id_model = ?, year = ?, mileage = ?, vin_code = ?, license_plate = ? WHERE id_car = ? AND id = ?',
+            [id_model, year, mileage, vin_code, license_plate, carId, userId],
             (err, result) => {
                 if (err) {
                     console.error(err);
@@ -104,6 +168,34 @@ exports.deleteCar = (req, res) => {
 };
 
 //получение 
+// exports.getCars = (req, res) => {
+//     const token = req.headers.authorization;
+
+//     if (!token) {
+//         return res.status(401).json({ message: 'Токен не предоставлен' });
+//     }
+
+//     try {
+//         const decoded = jwt.verify(token, 'your_jwt_secret');
+//         const userId = decoded.id;
+
+//         db.query(
+//             'SELECT id_car, model, brand, year, mileage, vin_code, license_plate FROM cars WHERE id = ?',
+//             [userId],
+//             (err, result) => {
+//                 if (err) {
+//                     console.error(err);
+//                     return res.status(500).json({ message: 'Ошибка при получении списка машин' });
+//                 }
+
+//                 res.status(200).json(result);
+//             }
+//         );
+//     } catch (err) {
+//         console.error(err);
+//         res.status(403).json({ message: 'Неверный токен' });
+//     }
+// };
 exports.getCars = (req, res) => {
     const token = req.headers.authorization;
 
@@ -115,18 +207,29 @@ exports.getCars = (req, res) => {
         const decoded = jwt.verify(token, 'your_jwt_secret');
         const userId = decoded.id;
 
-        db.query(
-            'SELECT id_car, model, brand, year, mileage, vin_code, license_plate, body_type, engine_type FROM cars WHERE id = ?',
-            [userId],
-            (err, result) => {
-                if (err) {
-                    console.error(err);
-                    return res.status(500).json({ message: 'Ошибка при получении списка машин' });
-                }
+        const query = `
+            SELECT 
+                c.id_car,
+                m.model_name,
+                b.brand_name,
+                c.year,
+                c.mileage,
+                c.vin_code,
+                c.license_plate
+            FROM cars c
+            JOIN model m ON c.id_model = m.id_model
+            JOIN brand b ON m.id_brand = b.id_brand
+            WHERE c.id = ?
+        `;
 
-                res.status(200).json(result);
+        db.query(query, [userId], (err, result) => {
+            if (err) {
+                console.error(err);
+                return res.status(500).json({ message: 'Ошибка при получении списка машин' });
             }
-        );
+
+            res.status(200).json(result);
+        });
     } catch (err) {
         console.error(err);
         res.status(403).json({ message: 'Неверный токен' });
