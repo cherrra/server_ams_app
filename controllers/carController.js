@@ -1,17 +1,6 @@
 const jwt = require('jsonwebtoken');
 const db = require('../config/db');
-
-// Конфигурация токенов
-const jwtConfig = {
-  access: {
-    secret: 'your_access_jwt_secret',
-    expiresIn: '15m'
-  },
-  refresh: {
-    secret: 'your_refresh_jwt_secret',
-    expiresIn: '7d'
-  }
-};
+const jwtConfig = require('../config/jwt.config'); // Импорт конфигурации токенов
 
 // Функция для извлечения токена из заголовка
 function extractToken(req) {

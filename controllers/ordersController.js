@@ -1,23 +1,17 @@
 const jwt = require('jsonwebtoken');
 const db = require('../config/db'); 
+const jwtConfig = require('../config/jwt.config'); 
 
-const jwtConfig = {
-    access: {
-      secret: 'your_access_jwt_secret',
-      expiresIn: '15m'
-    },
-    refresh: {
-      secret: 'your_refresh_jwt_secret',
-      expiresIn: '7d'
-    }
-  };
+// Функция для извлечения токена из заголовка
+function extractToken(req) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) return null;
+  return authHeader.split(' ')[1];
+}
 
 exports.getUserOrders = (req, res) => {
-    const token = req.headers.authorization;
-  
-    if (!token) {
-      return res.status(401).json({ message: 'Токен не предоставлен' });
-    }
+  const token = extractToken(req);
+  if (!token) return res.status(401).json({ message: 'Токен не предоставлен' });
   
     try {
       const decoded = jwt.verify(token, jwtConfig.access.secret);
@@ -84,11 +78,8 @@ exports.getUserOrders = (req, res) => {
   };
 
   exports.getAdminOrders = (req, res) => {
-    const token = req.headers.authorization;
-  
-    if (!token) {
-      return res.status(401).json({ message: 'Токен не предоставлен' });
-    }
+    const token = extractToken(req);
+    if (!token) return res.status(401).json({ message: 'Токен не предоставлен' });
   
     try {
       const decoded = jwt.verify(token, jwtConfig.access.secret);
@@ -168,7 +159,7 @@ exports.getUserOrders = (req, res) => {
 
   
   exports.updateOrderStatus = (req, res) => {
-    const token = req.headers.authorization;
+    const token = extractToken(req);
     const { status } = req.body;
     const orderId = req.params.id;
   
@@ -215,7 +206,7 @@ exports.getUserOrders = (req, res) => {
 
   
   exports.createOrder = (req, res) => {
-    const token = req.headers.authorization;
+    const token = extractToken(req);
     if (!token) {
       return res.status(401).json({ message: 'Токен не предоставлен' });
     }
@@ -304,7 +295,7 @@ exports.getUserOrders = (req, res) => {
 
   
   exports.deleteOrder = (req, res) => {
-    const token = req.headers.authorization;
+    const token = extractToken(req);
   
     if (!token) {
       return res.status(401).json({ message: 'Токен не предоставлен' });
@@ -336,4 +327,3 @@ exports.getUserOrders = (req, res) => {
       res.status(403).json({ message: 'Неверный токен' });
     }
   };
-  

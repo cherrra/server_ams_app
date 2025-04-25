@@ -1,19 +1,7 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const db = require('../config/db');
-
-
-// Конфигурация токенов
-const jwtConfig = {
-  access: {
-    secret: 'your_access_jwt_secret',
-    expiresIn: '15m' // короткий срок жизни
-  },
-  refresh: {
-    secret: 'your_refresh_jwt_secret',
-    expiresIn: '7d' // долгий срок жизни
-  }
-};
+const jwtConfig = require('../config/jwt.config'); // Импорт конфига JWT
 
 // Генерация пары токенов
 function generateTokens(user) {
@@ -126,7 +114,7 @@ exports.register = (req, res) => {
   });
 };
 
-//получение
+// Получение данных пользователя
 exports.getUser = (req, res) => {
   const token = req.headers.authorization?.split(' ')[1]; // Извлекаем токен из заголовка Authorization
 
@@ -135,7 +123,7 @@ exports.getUser = (req, res) => {
   }
 
   try {
-    const decoded = jwt.verify(token, jwtConfig.access.secret); // Используем секрет для accessToken
+    const decoded = jwt.verify(token, jwtConfig.access.secret);
     const userId = decoded.id;
 
     db.query(
@@ -160,17 +148,16 @@ exports.getUser = (req, res) => {
   }
 };
 
-
-//редактирование
+// Редактирование данных пользователя
 exports.updateUser = (req, res) => {
-  const token = req.headers.authorization?.split(' ')[1]; // Извлекаем токен
+  const token = req.headers.authorization?.split(' ')[1];
 
   if (!token) {
     return res.status(401).json({ message: 'Токен не предоставлен' });
   }
 
   try {
-    const decoded = jwt.verify(token, jwtConfig.access.secret); // Используем секрет для accessToken
+    const decoded = jwt.verify(token, jwtConfig.access.secret);
     const userId = decoded.id;
 
     const { username, email, birth_date, phone_number } = req.body;
@@ -197,16 +184,16 @@ exports.updateUser = (req, res) => {
   }
 };
 
-//удаление
+// Удаление аккаунта
 exports.deleteOwnAccount = (req, res) => {
-  const token = req.headers.authorization?.split(' ')[1]; // Извлекаем токен
+  const token = req.headers.authorization?.split(' ')[1];
 
   if (!token) {
     return res.status(401).json({ message: 'Токен не предоставлен' });
   }
 
   try {
-    const decoded = jwt.verify(token, jwtConfig.access.secret); // Используем секрет для accessToken
+    const decoded = jwt.verify(token, jwtConfig.access.secret);
     const userId = decoded.id;
 
     db.query('DELETE FROM users WHERE id = ?', [userId], (err, result) => {
