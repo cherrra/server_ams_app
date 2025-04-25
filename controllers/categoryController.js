@@ -1,16 +1,34 @@
 const jwt = require('jsonwebtoken');
 const db = require('../config/db');
 
-//получение
-exports.getCategories = (req, res) => {
-  const token = req.headers.authorization;
-
-  if (!token) {
-    return res.status(401).json({ message: 'Токен не предоставлен' });
+// Импорт конфигурации токенов
+const jwtConfig = {
+  access: {
+    secret: 'your_access_jwt_secret',
+    expiresIn: '15m'
+  },
+  refresh: {
+    secret: 'your_refresh_jwt_secret',
+    expiresIn: '7d'
   }
+};
+
+// Вспомогательная функция для извлечения токена
+function extractToken(req) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) return null;
+  // Убираем "Bearer "
+  const parts = authHeader.split(' ');
+  return parts.length === 2 ? parts[1] : null;
+}
+
+// Получение категорий (доступно всем авторизованным)
+exports.getCategories = (req, res) => {
+  const token = extractToken(req);
+  if (!token) return res.status(401).json({ message: 'Токен не предоставлен' });
 
   try {
-    jwt.verify(token, 'your_jwt_secret');
+    jwt.verify(token, jwtConfig.access.secret);
     const query = 'SELECT id_category, category_name FROM categories';
 
     db.query(query, (err, categories) => {
@@ -18,7 +36,6 @@ exports.getCategories = (req, res) => {
         console.error(err);
         return res.status(500).json({ message: 'Ошибка при получении данных' });
       }
-
       res.status(200).json(categories);
     });
   } catch (err) {
@@ -27,16 +44,13 @@ exports.getCategories = (req, res) => {
   }
 };
 
-//получение админ
+// Получение категорий только для админа
 exports.getCategoriesAdmin = (req, res) => {
-  const token = req.headers.authorization;
-
-  if (!token) {
-    return res.status(401).json({ message: 'Токен не предоставлен' });
-  }
+  const token = extractToken(req);
+  if (!token) return res.status(401).json({ message: 'Токен не предоставлен' });
 
   try {
-    const decoded = jwt.verify(token, 'your_jwt_secret');
+    const decoded = jwt.verify(token, jwtConfig.access.secret);
     const userId = decoded.id;
 
     db.query('SELECT is_admin FROM users WHERE id = ?', [userId], (err, result) => {
@@ -44,13 +58,11 @@ exports.getCategoriesAdmin = (req, res) => {
         return res.status(403).json({ message: 'Нет прав для просмотра категорий' });
       }
 
-      const query = 'SELECT id_category, category_name FROM categories';
-      db.query(query, (err, categories) => {
+      db.query('SELECT id_category, category_name FROM categories', (err, categories) => {
         if (err) {
           console.error(err);
           return res.status(500).json({ message: 'Ошибка при получении данных' });
         }
-
         res.status(200).json(categories);
       });
     });
@@ -60,16 +72,13 @@ exports.getCategoriesAdmin = (req, res) => {
   }
 };
 
-//добавление
+// Добавление категории (админ)
 exports.addCategory = (req, res) => {
-  const token = req.headers.authorization;
-
-  if (!token) {
-    return res.status(401).json({ message: 'Токен не предоставлен' });
-  }
+  const token = extractToken(req);
+  if (!token) return res.status(401).json({ message: 'Токен не предоставлен' });
 
   try {
-    const decoded = jwt.verify(token, 'your_jwt_secret');
+    const decoded = jwt.verify(token, jwtConfig.access.secret);
     const adminId = decoded.id;
 
     db.query('SELECT is_admin FROM users WHERE id = ?', [adminId], (err, result) => {
@@ -79,18 +88,14 @@ exports.addCategory = (req, res) => {
 
       const { category_name } = req.body;
 
-      db.query(
-        'INSERT INTO categories (category_name) VALUES (?)',
-        [category_name],
-        (err, result) => {
-          if (err) {
-            console.error(err);
-            return res.status(500).json({ message: 'Ошибка добавления категории' });
-          }
-
-          res.status(201).json({ message: 'Категория успешно добавлена', categoryId: result.insertId });
+      db.query('INSERT INTO categories (category_name) VALUES (?)', [category_name], (err, result) => {
+        if (err) {
+          console.error(err);
+          return res.status(500).json({ message: 'Ошибка добавления категории' });
         }
-      );
+
+        res.status(201).json({ message: 'Категория успешно добавлена', categoryId: result.insertId });
+      });
     });
   } catch (err) {
     console.error(err);
@@ -98,16 +103,13 @@ exports.addCategory = (req, res) => {
   }
 };
 
-//обновление
+// Обновление категории (админ)
 exports.updateCategory = (req, res) => {
-  const token = req.headers.authorization;
-
-  if (!token) {
-    return res.status(401).json({ message: 'Токен не предоставлен' });
-  }
+  const token = extractToken(req);
+  if (!token) return res.status(401).json({ message: 'Токен не предоставлен' });
 
   try {
-    const decoded = jwt.verify(token, 'your_jwt_secret');
+    const decoded = jwt.verify(token, jwtConfig.access.secret);
     const adminId = decoded.id;
 
     db.query('SELECT is_admin FROM users WHERE id = ?', [adminId], (err, result) => {
@@ -141,16 +143,13 @@ exports.updateCategory = (req, res) => {
   }
 };
 
-//удаление
+// Удаление категории (админ)
 exports.deleteCategory = (req, res) => {
-  const token = req.headers.authorization;
-
-  if (!token) {
-    return res.status(401).json({ message: 'Токен не предоставлен' });
-  }
+  const token = extractToken(req);
+  if (!token) return res.status(401).json({ message: 'Токен не предоставлен' });
 
   try {
-    const decoded = jwt.verify(token, 'your_jwt_secret');
+    const decoded = jwt.verify(token, jwtConfig.access.secret);
     const adminId = decoded.id;
 
     db.query('SELECT is_admin FROM users WHERE id = ?', [adminId], (err, result) => {

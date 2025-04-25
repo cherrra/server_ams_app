@@ -1,21 +1,35 @@
 const jwt = require('jsonwebtoken');
-const db = require('../config/db'); 
+const db = require('../config/db');
 
-//получение
+// Конфигурация токенов
+const jwtConfig = {
+  access: {
+    secret: 'your_access_jwt_secret',
+    expiresIn: '15m'
+  },
+  refresh: {
+    secret: 'your_refresh_jwt_secret',
+    expiresIn: '7d'
+  }
+};
+
+// ====================== ПОЛУЧЕНИЕ УСЛУГ ==========================
 exports.getServices = (req, res) => {
-    const token = req.headers.authorization;
+    const authHeader = req.headers.authorization;
     const categoryId = req.query.id_category;
 
-    if (!token) {
+    if (!authHeader) {
         return res.status(401).json({ message: 'Токен не предоставлен' });
     }
+
+    const token = authHeader.split(' ')[1]; // Извлекаем сам токен из "Bearer <токен>"
 
     if (!categoryId) {
         return res.status(400).json({ message: 'Не указан id категории' });
     }
 
     try {
-        const decoded = jwt.verify(token, 'your_jwt_secret');
+        const decoded = jwt.verify(token, jwtConfig.access.secret); // Используем правильный секрет
         const query = 'SELECT id_service, service_name, description, price, id_category FROM services WHERE id_category = ?';
 
         db.query(query, [categoryId], (err, services) => {
@@ -32,20 +46,27 @@ exports.getServices = (req, res) => {
     }
 };
 
-//добавление
+// ====================== ДОБАВЛЕНИЕ УСЛУГИ ==========================
 exports.addService = (req, res) => {
-    const token = req.headers.authorization;
+    const authHeader = req.headers.authorization;
 
-    if (!token) {
+    if (!authHeader) {
         return res.status(401).json({ message: 'Токен не предоставлен' });
     }
 
+    const token = authHeader.split(' ')[1];
+
     try {
-        const decoded = jwt.verify(token, 'your_jwt_secret');
+        const decoded = jwt.verify(token, jwtConfig.access.secret);
         const adminId = decoded.id;
 
         db.query('SELECT is_admin FROM users WHERE id = ?', [adminId], (err, result) => {
-            if (err || !result.length || !result[0].is_admin) {
+            if (err) {
+                console.error(err);
+                return res.status(500).json({ message: 'Ошибка проверки прав' });
+            }
+
+            if (!result.length || !result[0].is_admin) {
                 return res.status(403).json({ message: 'Недостаточно прав' });
             }
 
@@ -66,24 +87,31 @@ exports.addService = (req, res) => {
         });
     } catch (err) {
         console.error(err);
-        res.status(403).json({ message: 'Неверный токен' });
+        res.status(403).json({ message: 'Неверный или просроченный токен' });
     }
 };
 
-//обновление
+// ====================== ОБНОВЛЕНИЕ УСЛУГИ ==========================
 exports.updateService = (req, res) => {
-    const token = req.headers.authorization;
+    const authHeader = req.headers.authorization;
 
-    if (!token) {
+    if (!authHeader) {
         return res.status(401).json({ message: 'Токен не предоставлен' });
     }
 
+    const token = authHeader.split(' ')[1];
+
     try {
-        const decoded = jwt.verify(token, 'your_jwt_secret');
+        const decoded = jwt.verify(token, jwtConfig.access.secret);
         const adminId = decoded.id;
 
         db.query('SELECT is_admin FROM users WHERE id = ?', [adminId], (err, result) => {
-            if (err || !result.length || !result[0].is_admin) {
+            if (err) {
+                console.error(err);
+                return res.status(500).json({ message: 'Ошибка проверки прав' });
+            }
+
+            if (!result.length || !result[0].is_admin) {
                 return res.status(403).json({ message: 'Недостаточно прав' });
             }
 
@@ -96,7 +124,7 @@ exports.updateService = (req, res) => {
                 (err, result) => {
                     if (err) {
                         console.error(err);
-                        return res.status(500).json({ message: 'Ошибка обновления' });
+                        return res.status(500).json({ message: 'Ошибка обновления услуги' });
                     }
 
                     if (result.affectedRows === 0) {
@@ -109,24 +137,31 @@ exports.updateService = (req, res) => {
         });
     } catch (err) {
         console.error(err);
-        res.status(403).json({ message: 'Неверный токен' });
+        res.status(403).json({ message: 'Неверный или просроченный токен' });
     }
 };
 
-//удаление
+// ====================== УДАЛЕНИЕ УСЛУГИ ==========================
 exports.deleteService = (req, res) => {
-    const token = req.headers.authorization;
+    const authHeader = req.headers.authorization;
 
-    if (!token) {
+    if (!authHeader) {
         return res.status(401).json({ message: 'Токен не предоставлен' });
     }
 
+    const token = authHeader.split(' ')[1];
+
     try {
-        const decoded = jwt.verify(token, 'your_jwt_secret');
+        const decoded = jwt.verify(token, jwtConfig.access.secret);
         const adminId = decoded.id;
 
         db.query('SELECT is_admin FROM users WHERE id = ?', [adminId], (err, result) => {
-            if (err || !result.length || !result[0].is_admin) {
+            if (err) {
+                console.error(err);
+                return res.status(500).json({ message: 'Ошибка проверки прав' });
+            }
+
+            if (!result.length || !result[0].is_admin) {
                 return res.status(403).json({ message: 'Недостаточно прав' });
             }
 
@@ -147,6 +182,6 @@ exports.deleteService = (req, res) => {
         });
     } catch (err) {
         console.error(err);
-        res.status(403).json({ message: 'Неверный токен' });
+        res.status(403).json({ message: 'Неверный или просроченный токен' });
     }
 };

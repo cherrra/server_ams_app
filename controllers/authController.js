@@ -2,6 +2,92 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const db = require('../config/db');
 
+
+// Конфигурация токенов
+const jwtConfig = {
+  access: {
+    secret: 'your_access_jwt_secret',
+    expiresIn: '15m' // короткий срок жизни
+  },
+  refresh: {
+    secret: 'your_refresh_jwt_secret',
+    expiresIn: '7d' // долгий срок жизни
+  }
+};
+
+// Генерация пары токенов
+function generateTokens(user) {
+  const accessToken = jwt.sign(
+    { id: user.id, username: user.username, email: user.email },
+    jwtConfig.access.secret,
+    { expiresIn: jwtConfig.access.expiresIn }
+  );
+  
+  const refreshToken = jwt.sign(
+    { id: user.id },
+    jwtConfig.refresh.secret,
+    { expiresIn: jwtConfig.refresh.expiresIn }
+  );
+  
+  return { accessToken, refreshToken };
+}
+
+// Логин
+exports.login = (req, res) => {
+  const { email, password } = req.body;
+
+  db.query('SELECT * FROM users WHERE email = ?', [email], (err, result) => {
+    if (err || result.length === 0) {
+      return res.status(400).json({ message: 'Данные не верные' });
+    }
+
+    const user = result[0];
+    
+    bcrypt.compare(password, user.password, (err, isMatch) => {
+      if (!isMatch) {
+        return res.status(400).json({ message: 'Данные не верные' });
+      }
+      
+      const { accessToken, refreshToken } = generateTokens(user);
+      
+      res.status(200).json({ 
+        accessToken, 
+        refreshToken,
+        username: user.username, 
+        email: user.email 
+      });
+    });
+  });
+};
+
+// Обновление access токена
+exports.refreshToken = (req, res) => {
+  const { refreshToken } = req.body;
+
+  if (!refreshToken) {
+    return res.status(401).json({ message: 'Refresh токен отсутствует' });
+  }
+
+  // Проверяем refresh токен
+  jwt.verify(refreshToken, jwtConfig.refresh.secret, (err, decoded) => {
+    if (err) {
+      return res.status(403).json({ message: 'Недействительный refresh токен' });
+    }
+
+    // Получаем пользователя по ID из токена
+    db.query('SELECT * FROM users WHERE id = ?', [decoded.id], (err, result) => {
+      if (err || result.length === 0) {
+        return res.status(403).json({ message: 'Пользователь не найден' });
+      }
+
+      const user = result[0];
+      const { accessToken } = generateTokens(user);
+      
+      res.status(200).json({ accessToken });
+    });
+  });
+};
+
 //регистрация
 exports.register = (req, res) => {
   const { username, email, password } = req.body;
@@ -40,127 +126,103 @@ exports.register = (req, res) => {
   });
 };
 
-//авторизация 
-exports.login = (req, res) => {
-  const { email, password } = req.body;
-
-  db.query('SELECT * FROM users WHERE email = ?', [email], (err, result) => {
-    if (err || result.length === 0) {
-      return res.status(400).json({ message: 'Данные не верные' });
-    }
-
-    const user = result[0];
-    
-    bcrypt.compare(password, user.password, (err, isMatch) => {
-      if (!isMatch) {
-        return res.status(400).json({ message: 'Данные не верные' });
-      }
-      
-      // Надо токены исправить!!!
-      
-      const token = jwt.sign({ id: user.id, username: user.username, email: user.email }, 'your_jwt_secret', { expiresIn: '1h' });
-
-      res.status(200).json({ token, username: user.username, email: user.email });
-    });
-  });
-};
-
 //получение
 exports.getUser = (req, res) => {
-  const token = req.headers.authorization;
+  const token = req.headers.authorization?.split(' ')[1]; // Извлекаем токен из заголовка Authorization
 
   if (!token) {
-      return res.status(401).json({ message: 'Токен не предоставлен' });
+    return res.status(401).json({ message: 'Токен не предоставлен' });
   }
 
   try {
-      const decoded = jwt.verify(token, 'your_jwt_secret');
-      const userId = decoded.id;
+    const decoded = jwt.verify(token, jwtConfig.access.secret); // Используем секрет для accessToken
+    const userId = decoded.id;
 
-      db.query(
-          'SELECT id, username, email, DATE_FORMAT(birth_date, "%d.%m.%Y") AS birth_date, phone_number, link_img FROM users WHERE id = ?',
-          [userId],
-          (err, result) => {
-              if (err) {
-                  console.error(err);
-                  return res.status(500).json({ message: 'Ошибка сервера' });
-              }
+    db.query(
+      'SELECT id, username, email, DATE_FORMAT(birth_date, "%d.%m.%Y") AS birth_date, phone_number, link_img FROM users WHERE id = ?',
+      [userId],
+      (err, result) => {
+        if (err) {
+          console.error(err);
+          return res.status(500).json({ message: 'Ошибка сервера' });
+        }
 
-              if (result.length === 0) {
-                  return res.status(404).json({ message: 'Пользователь не найден' });
-              }
+        if (result.length === 0) {
+          return res.status(404).json({ message: 'Пользователь не найден' });
+        }
 
-              res.status(200).json(result[0]);
-          }
-      );
+        res.status(200).json(result[0]);
+      }
+    );
   } catch (err) {
-      console.error(err);
-      res.status(403).json({ message: 'Неверный токен' });
+    console.error(err);
+    res.status(403).json({ message: 'Неверный токен' });
   }
 };
+
 
 //редактирование
 exports.updateUser = (req, res) => {
-  const token = req.headers.authorization;
+  const token = req.headers.authorization?.split(' ')[1]; // Извлекаем токен
 
   if (!token) {
-      return res.status(401).json({ message: 'Токен не предоставлен' });
+    return res.status(401).json({ message: 'Токен не предоставлен' });
   }
 
   try {
-      const decoded = jwt.verify(token, 'your_jwt_secret');
-      const userId = decoded.id;
+    const decoded = jwt.verify(token, jwtConfig.access.secret); // Используем секрет для accessToken
+    const userId = decoded.id;
 
-      const { username, email, birth_date, phone_number } = req.body;
+    const { username, email, birth_date, phone_number } = req.body;
 
-      db.query(
-          'UPDATE users SET username = ?, email = ?, birth_date = ?, phone_number = ? WHERE id = ?',
-          [username, email, birth_date, phone_number, userId],
-          (err, result) => {
-              if (err) {
-                  console.error(err);
-                  return res.status(500).json({ message: 'Ошибка сервера' });
-              }
+    db.query(
+      'UPDATE users SET username = ?, email = ?, birth_date = ?, phone_number = ? WHERE id = ?',
+      [username, email, birth_date, phone_number, userId],
+      (err, result) => {
+        if (err) {
+          console.error(err);
+          return res.status(500).json({ message: 'Ошибка сервера' });
+        }
 
-              if (result.affectedRows === 0) {
-                  return res.status(404).json({ message: 'Пользователь не найден' });
-              }
+        if (result.affectedRows === 0) {
+          return res.status(404).json({ message: 'Пользователь не найден' });
+        }
 
-              res.status(200).json({ message: 'Данные успешно обновлены' });
-          }
-      );
+        res.status(200).json({ message: 'Данные успешно обновлены' });
+      }
+    );
   } catch (err) {
-      console.error(err);
-      res.status(403).json({ message: 'Неверный токен' });
+    console.error(err);
+    res.status(403).json({ message: 'Неверный токен' });
   }
 };
 
 //удаление
 exports.deleteOwnAccount = (req, res) => {
-  const token = req.headers.authorization;
+  const token = req.headers.authorization?.split(' ')[1]; // Извлекаем токен
 
   if (!token) {
-      return res.status(401).json({ message: 'Токен не предоставлен' });
+    return res.status(401).json({ message: 'Токен не предоставлен' });
   }
 
   try {
-      const decoded = jwt.verify(token, 'your_jwt_secret');
-      const userId = decoded.id;
+    const decoded = jwt.verify(token, jwtConfig.access.secret); // Используем секрет для accessToken
+    const userId = decoded.id;
 
-      db.query('DELETE FROM users WHERE id = ?', [userId], (err, result) => {
-          if (err) {
-              console.error(err);
-              return res.status(500).json({ message: 'Ошибка при удалении аккаунта' });
-          }
+    db.query('DELETE FROM users WHERE id = ?', [userId], (err, result) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).json({ message: 'Ошибка при удалении аккаунта' });
+      }
 
-          if (result.affectedRows === 0) {
-              return res.status(404).json({ message: 'Пользователь не найден' });
-          }
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ message: 'Пользователь не найден' });
+      }
 
-          res.status(200).json({ message: 'Аккаунт успешно удалён' });
-      });
+      res.status(200).json({ message: 'Аккаунт успешно удалён' });
+    });
   } catch (err) {
-      console.error(err);
-      res.status(403).json({ message: 'Неверный токен' });
+    console.error(err);
+    res.status(403).json({ message: 'Неверный токен' });
   }
 };
