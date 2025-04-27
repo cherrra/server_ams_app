@@ -1,15 +1,13 @@
 const jwt = require('jsonwebtoken');
 const db = require('../config/db');
-const jwtConfig = require('../config/jwt.config'); // Импорт конфигурации токенов
+const jwtConfig = require('../config/jwt.config'); 
 
-// Функция для извлечения токена из заголовка
 function extractToken(req) {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) return null;
   return authHeader.split(' ')[1];
 }
 
-// ====================== ПОЛУЧЕНИЕ АВТОМОБИЛЕЙ ==========================
 exports.getCars = (req, res) => {
   const token = extractToken(req);
   if (!token) return res.status(401).json({ message: 'Токен не предоставлен' });
@@ -48,7 +46,6 @@ exports.getCars = (req, res) => {
   }
 };
 
-// ====================== ДОБАВЛЕНИЕ АВТОМОБИЛЯ ==========================
 exports.addCar = (req, res) => {
   const token = extractToken(req);
   const { model_name, brand_name, year, mileage, vin_code, license_plate } = req.body;
@@ -125,7 +122,6 @@ exports.addCar = (req, res) => {
   }
 };
 
-// ====================== ОБНОВЛЕНИЕ АВТОМОБИЛЯ ==========================
 exports.updateCar = (req, res) => {
   const token = extractToken(req);
   const { model_name, brand_name, year, mileage, vin_code, license_plate } = req.body;
@@ -204,7 +200,6 @@ exports.updateCar = (req, res) => {
   }
 };
 
-// ====================== УДАЛЕНИЕ АВТОМОБИЛЯ ==========================
 exports.deleteCar = (req, res) => {
   const token = extractToken(req);
   const carId = req.params.id;

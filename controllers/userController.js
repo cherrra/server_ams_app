@@ -2,7 +2,6 @@ const jwt = require('jsonwebtoken');
 const db = require('../config/db');
 const jwtConfig = require('../config/jwt.config');
 
-// Функция для извлечения токена из заголовка
 function extractToken(req) {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) return null;

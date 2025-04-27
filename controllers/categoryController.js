@@ -1,17 +1,15 @@
 const jwt = require('jsonwebtoken');
 const db = require('../config/db');
-const jwtConfig = require('../config/jwt.config'); // Импорт конфигурации токенов
+const jwtConfig = require('../config/jwt.config'); 
 
-// Вспомогательная функция для извлечения токена
 function extractToken(req) {
   const authHeader = req.headers.authorization;
   if (!authHeader) return null;
-  // Убираем "Bearer "
+
   const parts = authHeader.split(' ');
   return parts.length === 2 ? parts[1] : null;
 }
 
-// Получение категорий (доступно всем авторизованным)
 exports.getCategories = (req, res) => {
   const token = extractToken(req);
   if (!token) return res.status(401).json({ message: 'Токен не предоставлен' });
@@ -33,7 +31,6 @@ exports.getCategories = (req, res) => {
   }
 };
 
-// Получение категорий только для админа
 exports.getCategoriesAdmin = (req, res) => {
   const token = extractToken(req);
   if (!token) return res.status(401).json({ message: 'Токен не предоставлен' });
@@ -61,7 +58,6 @@ exports.getCategoriesAdmin = (req, res) => {
   }
 };
 
-// Добавление категории (админ)
 exports.addCategory = (req, res) => {
   const token = extractToken(req);
   if (!token) return res.status(401).json({ message: 'Токен не предоставлен' });
@@ -92,7 +88,6 @@ exports.addCategory = (req, res) => {
   }
 };
 
-// Обновление категории (админ)
 exports.updateCategory = (req, res) => {
   const token = extractToken(req);
   if (!token) return res.status(401).json({ message: 'Токен не предоставлен' });
@@ -132,7 +127,6 @@ exports.updateCategory = (req, res) => {
   }
 };
 
-// Удаление категории (админ)
 exports.deleteCategory = (req, res) => {
   const token = extractToken(req);
   if (!token) return res.status(401).json({ message: 'Токен не предоставлен' });

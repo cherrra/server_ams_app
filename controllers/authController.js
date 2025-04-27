@@ -1,9 +1,9 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const db = require('../config/db');
-const jwtConfig = require('../config/jwt.config'); // Импорт конфига JWT
+const jwtConfig = require('../config/jwt.config'); 
 
-// Генерация пары токенов
+//генерация пары токенов
 function generateTokens(user) {
   const accessToken = jwt.sign(
     { id: user.id, username: user.username, email: user.email },
@@ -20,7 +20,7 @@ function generateTokens(user) {
   return { accessToken, refreshToken };
 }
 
-// Логин
+
 exports.login = (req, res) => {
   const { email, password } = req.body;
 
@@ -48,7 +48,7 @@ exports.login = (req, res) => {
   });
 };
 
-// Обновление access токена
+//обновление access токена
 exports.refreshToken = (req, res) => {
   const { refreshToken } = req.body;
 
@@ -56,13 +56,11 @@ exports.refreshToken = (req, res) => {
     return res.status(401).json({ message: 'Refresh токен отсутствует' });
   }
 
-  // Проверяем refresh токен
   jwt.verify(refreshToken, jwtConfig.refresh.secret, (err, decoded) => {
     if (err) {
       return res.status(403).json({ message: 'Недействительный refresh токен' });
     }
 
-    // Получаем пользователя по ID из токена
     db.query('SELECT * FROM users WHERE id = ?', [decoded.id], (err, result) => {
       if (err || result.length === 0) {
         return res.status(403).json({ message: 'Пользователь не найден' });
@@ -76,7 +74,6 @@ exports.refreshToken = (req, res) => {
   });
 };
 
-//регистрация
 exports.register = (req, res) => {
   const { username, email, password } = req.body;
 
@@ -114,9 +111,8 @@ exports.register = (req, res) => {
   });
 };
 
-// Получение данных пользователя
 exports.getUser = (req, res) => {
-  const token = req.headers.authorization?.split(' ')[1]; // Извлекаем токен из заголовка Authorization
+  const token = req.headers.authorization?.split(' ')[1]; 
 
   if (!token) {
     return res.status(401).json({ message: 'Токен не предоставлен' });
@@ -148,7 +144,6 @@ exports.getUser = (req, res) => {
   }
 };
 
-// Редактирование данных пользователя
 exports.updateUser = (req, res) => {
   const token = req.headers.authorization?.split(' ')[1];
 
@@ -184,7 +179,6 @@ exports.updateUser = (req, res) => {
   }
 };
 
-// Удаление аккаунта
 exports.deleteOwnAccount = (req, res) => {
   const token = req.headers.authorization?.split(' ')[1];
 

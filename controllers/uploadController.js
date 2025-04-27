@@ -2,7 +2,6 @@ const jwt = require('jsonwebtoken');
 const db = require('../config/db');
 const jwtConfig = require('../config/jwt.config');
 
-// Функция для извлечения токена из заголовка
 function extractToken(req) {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) return null;
@@ -24,7 +23,6 @@ exports.uploadImage = async (req, res) => {
     const imagePath = `uploads/${req.file.filename}`;
     const fullImageUrl = `${process.env.BASE_URL || 'http://localhost:5000'}/${imagePath}`;
 
-    // Используем promise-интерфейс для работы с async/await
     await db.promise().query(
       'UPDATE users SET link_img = ? WHERE id = ?', 
       [imagePath, userId]
@@ -64,7 +62,6 @@ exports.uploadImageCar = async (req, res) => {
     const imagePath = `uploads/${req.file.filename}`;
     const fullImageUrl = `${process.env.BASE_URL || 'http://localhost:5000'}/${imagePath}`;
 
-    // Проверяем принадлежность автомобиля пользователю
     const [carRows] = await db.promise().query(
       'SELECT id FROM cars WHERE id_car = ?', 
       [carId]
@@ -77,8 +74,7 @@ exports.uploadImageCar = async (req, res) => {
     if (parseInt(carRows[0].id) !== parseInt(userId)) {
       return res.status(403).json({ message: 'Нет доступа к этому автомобилю' });
     }
-
-    // Обновляем изображение автомобиля
+    
     await db.promise().query(
       'UPDATE cars SET link_img = ? WHERE id_car = ?', 
       [imagePath, carId]
